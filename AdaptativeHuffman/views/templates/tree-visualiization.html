@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualización del árbol - Adaptive Huffman</title>
+    <style>
+      /* --- Reset y Estilos Base --- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f8f9fa; /* Fondo general más suave */
+        color: #343a40;
+        line-height: 1.6;
+        padding: 2rem;
+      }
+
+      :root {
+        /* fallback para la altura de nivel (usada por el background de #treeRoot) */
+        --levelHeight: 110px;
+      }
+
+      /* --- Layout Principal --- */
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      h1 {
+        color: #0056b3; /* Un azul oscuro para el título */
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        font-size: 1.1rem;
+        color: #6c757d;
+        max-width: 600px;
+        margin: 0 auto 1.5rem auto;
+      }
+
+      /* Contenedor principal (flex con wrap para responsiveness) */
+      .container {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap; /* Permite que los elementos se apilen en pantallas pequeñas */
+      }
+
+      .left {
+        flex: 3; /* El árbol toma más espacio */
+        min-width: 300px; /* Ancho mínimo antes de apilarse */
+      }
+
+      .right {
+        flex: 1; /* Las métricas toman menos espacio */
+        min-width: 300px;
+      }
+
+      /* --- Estilo de Tarjetas (Cards) --- */
+      .card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      /* --- Área de Input --- */
+      .input-area {
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      #sourceInput {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s ease-in-out;
+      }
+
+      #sourceInput:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Foco claro */
+      }
+
+      #btnGenerate {
+        padding: 0.75rem 1.5rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: background-color 0.2s;
+      }
+
+      #btnGenerate:hover {
+        background-color: #0056b3;
+      }
+
+      /* --- Estilos de las Tarjetas de Contenido --- */
+      h3, h4 {
+        margin-bottom: 1rem;
+        color: #495057;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 0.5rem;
+      }
+
+      /* Placeholder del Árbol */
+      #treePlaceholder {
+        min-height: 300px;
+        border: 2px dashed #ced4da;
+        padding: 1.5rem;
+        border-radius: 8px;
+        background: #fdfdfd;
+        color: #6c757d;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      /* Estilo del placeholder cuando SÍ tiene contenido (requiere :has) */
+      /* Si esto no funciona, el JS debería añadir una clase "has-content" */
+      #treePlaceholder:has(.tree-list) {
+          border-style: solid;
+          border-color: #e9ecef;
+          background: #ffffff;
+          font-style: normal;
+          color: inherit;
+          align-items: flex-start;
+          justify-content: flex-start;
+      }
+
+      /* Métricas */
+      .metrics div {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0.25rem;
+        border-bottom: 1px solid #f1f1f1;
+      }
+      .metrics div:last-child {
+        border-bottom: none;
+      }
+      .metrics div span {
+        font-weight: bold;
+        color: #007bff;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.1rem;
+      }
+
+      /* Tabla de Códigos */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      /* Estilo para las filas de la tabla */
+      tbody tr:nth-child(even) {
+        background-color: #fcfcfc;
+      }
+      tbody td:first-child {
+        font-weight: bold;
+        font-family: 'Courier New', Courier, monospace;
+      }
+      tbody td:nth-child(2) {
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+
+      /* --- Estilos Avanzados del Árbol (con líneas) --- */
+      /* Asume una estructura de: <ul><li><span>Nodo</span><div><ul>...hijos...</ul></div></li></ul> */
+
+      .tree-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        position: relative;
+      }
+
+      .tree-item {
+        margin: 0;
+        padding-left: 25px; /* Espacio para las líneas */
+        position: relative;
+      }
+
+      .nodeLabel {
+        display: inline-block;
+        padding: 8px 12px;
+        background: #fff;
+        border: 1px solid #d0d0d0;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        font-weight: 700;
+        font-size: 1rem; /* ligeramente más grande */
+        color: #222;
+      }
+
+      .emptyNode {
+        min-width: 64px;
+        min-height: 24px;
+        visibility: hidden; /* reserva espacio pero no muestra nada */
+      }
+
+      .leafLabel {
+        background: linear-gradient(180deg, #e8fff0, #e0ffea);
+        border: 2px solid #7ddc94;
+        color: #064e26;
+        box-shadow: 0 8px 22px rgba(34,139,78,0.06);
+        font-size: 1.02rem;
+        padding: 10px 14px;
+        border-radius: 12px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 56px;
+      }
+
+      .leafLabel .leafSym {
+        font-weight: 800;
+        font-size: 1.05rem;
+        line-height: 1;
+        color: #043f1f;
+      }
+
+      .leafLabel .leafCode {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        color: #0b5f3a;
+        margin-top: 4px;
+        background: rgba(255,255,255,0.0);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      /* Placeholder (empty) path label clearer */
+      .emptyNode { /* used for placeholders */
+        min-width: 64px;
+        min-height: 28px;
+        visibility: visible;
+        opacity: 0.28;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+      }
+
+      .pathLabel {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        color: #334155;
+      }
+
+      /* --- Magia: Líneas con pseudo-elementos --- */
+
+      /* Línea vertical que conecta todos los hijos */
+      .children > .tree-list::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: #ccc;
+      }
+
+      /* Línea horizontal (codo) que va del 'tronco' al nodo */
+      .tree-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 18px; /* Alineado verticalmente (ajustar según tamaño de .nodeLabel) */
+        width: 20px; /* Ancho de la indentación */
+        height: 1px;
+        background: #ccc;
+        z-index: 0;
+      }
+
+      /* Línea vertical que conecta el 'codo' al tronco */
+      .tree-item::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: #ccc;
+        z-index: 0;
+      }
+
+      /* Ocultar la línea vertical para el último hijo */
+      .tree-item:last-child::after {
+        height: 18px; /* Conecta solo hasta el 'codo' */
+      }
+
+      /* Ocultar líneas y padding para el nodo raíz (el primer <ul>) */
+      #treePlaceholder > .tree-list > .tree-item {
+        padding-left: 0;
+      }
+      #treePlaceholder > .tree-list > .tree-item::before,
+      #treePlaceholder > .tree-list > .tree-item::after {
+        display: none;
+      }
+
+      /* --- Nuevos Estilos para Zoom y Contenedor del Árbol --- */
+      #treeWrapper {
+        min-height: 240px;
+        border: 1px dashed #bbb;
+        padding: 12px;
+        border-radius: 6px;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #treeViewport {
+        flex: 1;
+        overflow: auto;
+        width: 100%;
+      }
+
+      #treeRoot {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        transform-origin: 50% 0;
+        /* background-image: repeating-linear-gradient(to bottom, transparent 0px, transparent 110px, rgba(0,0,0,0.03) 110px, rgba(0,0,0,0.03) 111px); */
+        /* use the dynamically computed level height from JS (default fallback 110px) */
+        background-image: repeating-linear-gradient(to bottom, transparent 0px, transparent var(--levelHeight, 110px), rgba(0,0,0,0.03) var(--levelHeight, 110px), rgba(0,0,0,0.03) calc(var(--levelHeight, 110px) + 1px));
+      }
+
+      /* Asegurar que los metadatos y etiquetas queden por delante */
+      .nodeMeta { z-index: 3; }
+
+      /* Leyenda rápida para la presentación */
+      .legend { display:flex; gap:12px; align-items:center; font-size:0.95rem; margin-bottom:10px; }
+      .legend .item { display:inline-flex; gap:8px; align-items:center; }
+      .legend .dot { width:18px; height:18px; border-radius:50%; display:inline-block; }
+      .legend .internal { background:#2c3e50; border:2px solid rgba(0,0,0,0.06); }
+      .legend .leaf { background:linear-gradient(180deg,#e8f6ff,#f6fbff); border:2px solid #c6e6ff; }
+
+      /* Estilos para el árbol (visual jerárquica) */
+      .node {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 6px;
+      }
+
+      .connector {
+        height: 18px;
+        position: relative;
+        width: 100%;
+      }
+
+      /* línea horizontal entre hijos */
+      .connector .line {
+        position: absolute;
+        top: 8px;
+        left: 10%;
+        right: 10%;
+        height: 1px;
+        background: #bbb;
+      }
+
+      /* líneas verticales hacia abajo a los hijos */
+      .connector .leftV, .connector .rightV {
+        position: absolute;
+        top: 8px;
+        width: 0;
+        height: 12px;
+        border-left: 1px solid #bbb;
+      }
+
+      .connector .leftV {
+        left: 20%;
+      }
+
+      .connector .rightV {
+        right: 20%;
+      }
+
+      .childrenRow {
+        display: flex;
+        justify-content: center;
+        gap: 64px; /* espacio aumentado para mejor separación */
+        margin-top: 12px;
+        position: relative;
+        padding-top: 10px;
+      }
+
+      /* Línea horizontal que conecta a todos los hijos del mismo padre */
+      .childrenRow::before {
+        content: '';
+        position: absolute;
+        left: 4%;
+        right: 4%;
+        top: 10px;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.06));
+        z-index: 0;
+      }
+
+      .childSlot {
+        position: relative;
+        padding-top: 6px; /* espacio para el conector vertical */
+        min-height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      /* Línea vertical desde el parent hacia el hijo (centrada) */
+      .childSlot::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 0px;
+        height: 18px; /* mayor longitud del conector vertical */
+        width: 2px;
+        background: rgba(0,0,0,0.12);
+        z-index: 0;
+      }
+
+      /* internal node style (dot) */
+      .internalLabel {
+        background: #111827; /* very dark */
+        color: #ffffff;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        box-shadow: 0 6px 16px rgba(17,24,39,0.16);
+        border: 2px solid rgba(255,255,255,0.06);
+      }
+
+      /* leaf nodes: green-highlighted pill */
+      .leafLabel {
+        background: linear-gradient(180deg, #e8fff0, #e0ffea);
+        border: 2px solid #7ddc94;
+        color: #064e26;
+        box-shadow: 0 8px 22px rgba(34,139,78,0.06);
+        font-size: 1.02rem;
+        padding: 10px 14px;
+        border-radius: 12px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 56px;
+      }
+
+      .leafLabel .leafSym {
+        font-weight: 800;
+        font-size: 1.05rem;
+        line-height: 1;
+        color: #043f1f;
+      }
+
+      .leafLabel .leafCode {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        color: #0b5f3a;
+        margin-top: 4px;
+        background: rgba(255,255,255,0.0);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      /* Small metadata under nodes */
+      .nodeMeta {
+        z-index: 2;
+        font-family: Arial, sans-serif;
+        color: #4a5568;
+      }
+
+      /* Highlight on hover to help reading */
+      .node:hover .nodeLabel, .node:hover .internalLabel, .node:hover .leafLabel {
+        transform: translateY(-4px);
+        transition: transform 140ms ease-out;
+        box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+      }
+
+      /* Subtle alternating background per level to show heights (using data-depth on .node) */
+      .node[data-depth='0'] { background: transparent; }
+      .node[data-depth='1'] { background: rgba(2,6,23,0.01); }
+      .node[data-depth='2'] { background: rgba(2,6,23,0.015); }
+      .node[data-depth='3'] { background: rgba(2,6,23,0.02); }
+      .node[data-depth='4'] { background: rgba(2,6,23,0.025); }
+
+      /* Reduce connector thickness for deep trees to avoid visual clutter */
+      @media (max-width: 900px) {
+        .childrenRow::before { left: 8%; right: 8%; }
+        .childrenRow { gap: 28px; }
+      }
+
+      /* --- Media Queries para Responsividad --- */
+      @media (max-width: 700px) {
+        .container {
+          flex-direction: column;
+        }
+
+        .right {
+          width: 100%;
+        }
+
+        .childrenRow {
+          gap: 16px;
+        }
+      }
+
+    </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>Visualización del árbol - Adaptive Huffman</h1>
+    <p>Introduce un texto en el campo <em>source</em> para ver la estructura del árbol adaptativo generado y métricas básicas.</p>
+  </header>
+
+  <div class="legend">
+    <div class="item"><span class="dot internal"></span> Nodo interno</div>
+    <div class="item"><span class="dot leaf"></span> Hoja (símbolo)</div>
+  </div>
+  <div class="card input-area">
+    <label for="sourceInput" style="margin-right:8px; align-self: center; font-weight: bold;">Source:</label>
+    <input id="sourceInput" placeholder="Escribe una cadena de ejemplo" style="width:60%" />
+    <button id="btnGenerate">Generar árbol</button>
+    <button id="btnCoDeOut" class="btn" style="background:#6f42c1; color:white; margin-left:8px;">Co/De/Out</button>
+    <button id="btnEntropyGuide" class="btn" style="background:#17a2b8; color:white; margin-left:8px;">Analiza la entropía del texto</button>
+    <button id="btnToggleDebug" class="btn" style="background:#ffc107;color:#111;margin-left:8px">Mostrar debug</button>
+    <!-- File upload controls -->
+    <input id="fileUploader" type="file" style="margin-left:12px" />
+    <button id="btnCompressDL" class="btn" style="background:#28a745;color:#fff;margin-left:8px">Comprimir y descargar</button>
+    <button id="btnDecompressDL" class="btn" style="background:#6c757d;color:#fff;margin-left:8px">Descomprimir y descargar</button>
+  </div>
+  <div class="card" style="margin-top:8px;">
+    <div style="font-weight:600; margin-bottom:6px">Output</div>
+    <div style="display:flex;align-items:center;gap:12px;justify-content:space-between">
+      <pre id="compressOutput" style="white-space:pre-wrap; max-height:160px; overflow:auto; background:#f7f7f7; padding:8px; border-radius:6px; flex:1; margin:0">(compress/decompress output)</pre>
+      <div id="ratioBox" style="min-width:220px;padding:8px;border-radius:6px;background:#fff;border:1px solid #e6e9ee;margin-left:12px;text-align:center">
+        <div style="font-size:0.85rem;color:#666">Ratio de compresión</div>
+        <div id="ratioValue" style="font-weight:700;font-size:1.2rem;color:#28a745">—</div>
+        <div id="ratioSub" style="font-size:0.8rem;color:#666">(original / comprimido)</div>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="left card">
+      <h3>Árbol (visual)</h3>
+
+      <div id="treeWrapper">
+        <div class="zoom-controls">
+          <button id="btnZoomOut">−</button>
+          <button id="btnZoomIn">+</button>
+          <button id="btnZoomReset">Reset</button>
+          <div class="scaleDisplay">Zoom: <span id="scaleValue">100%</span></div>
+        </div>
+        <div id="treeStatus" style="margin-top:8px; color:#d9534f; min-height:1.2em; font-size:0.95rem"></div>
+
+        <div id="treeViewport">
+          <div id="treeRoot">(aquí se renderizará el árbol)</div>
+        </div>
+      </div>
+
+    </div>
+
+      <!-- Tabla de códigos siempre visible -->
+      <div class="card" style="margin-top:1rem;">
+        <h4>Tabla de códigos</h4>
+        <table id="codesTable">
+          <thead><tr><th>Símbolo</th><th>Código</th><th>Frecuencia</th><th>Bits</th></tr></thead>
+          <tbody>
+            <tr><td colspan="4" style="text-align: center; color: #888; padding: 1rem;">(sin datos)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="debugDetails" class="card" style="margin-top:1rem; display:none;">
+        <h4>Detalle / Debug</h4>
+        <div style="font-size:0.95rem; color:#555; margin-bottom:8px">Tiempos y preprocesado:</div>
+        <pre id="debugTimings" style="background:#f7f7f7;padding:8px;border-radius:6px;max-height:120px;overflow:auto">(sin datos)</pre>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/treeRenderer.js"></script>
+  <script>
+    (function(){
+      // Small helper: POST file and trigger download (reused in entropyGuide)
+      async function postFileAndDownload(url,file){
+        if(!file) return;
+        const fd = new FormData(); fd.append('file', file, file.name);
+        const r = await fetch(url, { method:'POST', body: fd });
+        if(!r.ok){ const t = await r.text().catch(()=>r.statusText||String(r.status)); alert('Error: '+t); return; }
+        const blob = await r.blob();
+        const cd = r.headers.get('Content-Disposition')||''; let filename = file.name; const m = /filename="?([^";]+)"?/.exec(cd); if(m && m[1]) filename = m[1];
+        const a = document.createElement('a'); const u = window.URL.createObjectURL(blob); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>window.URL.revokeObjectURL(u),3000);
+      }
+
+      const uploader = document.getElementById('fileUploader');
+      const btnCompressDL = document.getElementById('btnCompressDL');
+      const btnDecompressDL = document.getElementById('btnDecompressDL');
+      if(btnCompressDL && uploader) btnCompressDL.addEventListener('click', ()=>{ if(!uploader.files||!uploader.files[0]) return alert('Selecciona un archivo'); postFileAndDownload('/compress/upload', uploader.files[0]); });
+      if(btnDecompressDL && uploader) btnDecompressDL.addEventListener('click', ()=>{ if(!uploader.files||!uploader.files[0]) return alert('Selecciona un archivo'); postFileAndDownload('/decompress/upload', uploader.files[0]); });
+    })();
+  </script>
+  </body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DE/CO/OUT — Adaptive Huffman</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f6f8fa;margin:0;padding:20px}
+    .container{max-width:1000px;margin:0 auto}
+    .top{display:flex;justify-content:space-between;align-items:center}
+    .card{background:#fff;padding:16px;border-radius:8px;box-shadow:0 8px 24px rgba(10,20,30,0.06);margin-top:18px}
+    label{display:block;margin-bottom:8px;font-weight:600}
+    textarea{width:100%;min-height:120px;padding:8px;border-radius:6px;border:1px solid #e6e9ee;font-family:monospace}
+    .row{display:flex;gap:12px;margin-top:12px}
+    .btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn.primary{background:#007bff;color:#fff}
+    pre.output{background:#0f1724;color:#e6eef8;padding:12px;border-radius:6px;overflow:auto}
+    .small{color:#6c757d;font-size:0.9rem}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top">
+      <h1>DE/CO/OUT</h1>
+      <div><a href="/">Home</a> • <a href="/api/visualization/">Visualización</a></div>
+    </div>
+
+    <div class="card" aria-labelledby="compressTitle">
+      <h3 id="compressTitle">Compress</h3>
+      <p class="small">Introduce texto y pulsa <strong>Compress</strong>. Se enviará POST /compress</p>
+      <label for="decoCompressInput">Texto a comprimir</label>
+      <textarea id="decoCompressInput" aria-describedby="compressDesc">Hello world!</textarea>
+      <div class="row">
+        <button id="decoCompressBtn" class="btn primary">Compress</button>
+        <button id="decoCopyCompressed" class="btn" type="button">Copy compressedBase64</button>
+      </div>
+
+      <hr style="margin-top:16px;margin-bottom:8px">
+      <p class="small">O sube un archivo de texto para recibir un archivo comprimido descargable (.vitt)</p>
+      <input type="file" id="compressFileInput" accept=".txt,.md,text/*" />
+      <div class="row" style="margin-top:8px">
+        <button id="compressFileBtn" class="btn primary">Upload & Compress File</button>
+        <a id="compressFileLink" style="display:none" class="btn">Download compressed file</a>
+      </div>
+    </div>
+
+    <div class="card" aria-labelledby="metricsTitle" style="margin-top:12px">
+      <h3 id="metricsTitle">Métricas de compresión</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div>Original (bytes): <strong id="decoOriginalBytes">-</strong></div>
+        <div>Comprimido (bytes): <strong id="decoCompressedBytes">-</strong></div>
+        <div>Ratio: <strong id="decoRatio">-</strong></div>
+        <div>Ahorro: <strong id="decoSavings">-</strong></div>
+      </div>
+      <div style="margin-top:8px">
+        <label for="decoCompressedText">Compressed (Base64)</label>
+        <textarea id="decoCompressedText" placeholder="(resultado de compress)" style="min-height:120px;font-family:monospace"></textarea>
+      </div>
+    </div>
+
+    <div class="card" aria-labelledby="decompressTitle">
+      <h3 id="decompressTitle">Decompress</h3>
+      <p class="small">Pega un base64 comprimido y pulsa <strong>Decompress</strong>.</p>
+      <label for="decoDecompressInput">Compressed Base64</label>
+      <textarea id="decoDecompressInput" placeholder="paste compressedBase64" aria-describedby="decompressDesc"></textarea>
+      <div class="row">
+        <button id="decoDecompressBtn" class="btn primary">Decompress</button>
+        <button id="decoPasteCompressed" class="btn" type="button">Paste last compressed</button>
+      </div>
+
+      <hr style="margin-top:16px;margin-bottom:8px">
+      <p class="small">O sube un archivo comprimido (.vitt) para descargar el original</p>
+      <input type="file" id="decompressFileInput" accept=".vitt,.enc,application/octet-stream" />
+      <div class="row" style="margin-top:8px">
+        <button id="decompressFileBtn" class="btn primary">Upload & Decompress File</button>
+        <a id="decompressFileLink" style="display:none" class="btn">Download decompressed file</a>
+      </div>
+    </div>
+
+    <div class="card" aria-labelledby="outputTitle">
+      <h3 id="outputTitle">Output</h3>
+      <p class="small">Salida de las operaciones.</p>
+      <pre id="decoOutput" class="output" aria-live="polite">(esperando)</pre>
+    </div>
+  </div>
+
+  <script src="/js/decoout.js"></script>
+  <script>
+    (function(){
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const s = params.get('source');
+        if (s) {
+          const ta = document.getElementById('decoCompressInput');
+          if (ta) ta.value = s;
+        }
+      } catch (e) { console.warn('prefill decoout error', e); }
+    })();
+  </script>
+</body>
+</html>

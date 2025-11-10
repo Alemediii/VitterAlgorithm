@@ -1,0 +1,37 @@
+% Añadir en implementacion.tex
+\section{Funcionalidades de la app web}
+
+La aplicación web ofrece un conjunto de funcionalidades orientadas tanto al procesamiento
+como a la visualización y gestión de resultados:
+
+\subsection{Compresión de vídeos}
+La aplicación soporta la compresión de archivos de vídeo además de datos y texto.
+Los vídeos se procesan en bloques para permitir compresión incremental y manejo de
+archivos de gran tamaño. El flujo de trabajo incluye:
+\begin{itemize}
+  \item Preprocesado y tokenización específica para flujos multimedia.
+  \item Codificación por bloques mediante el encoder adaptativo (Vitter).
+  \item Exportación de resultados en formatos comprimidos aptos para descarga.
+\end{itemize}
+
+\subsection{Sección de codificación y decodificación (encode / decode) y \textit{de co out}}
+La interfaz dispone de un área dedicada a las operaciones de codificación y decodificación:
+\begin{itemize}
+  \item Panel \texttt{Encode} para iniciar la compresión de la entrada seleccionada.
+  \item Panel \texttt{Decode} para restaurar datos a partir del flujo de bits comprimido.
+  \item La llamada "sección de \textit{de co out}" corresponde al espacio de entrada/salida
+    donde se muestran los resultados (output) de las operaciones: longitud media del código,
+    entropía de la fuente, y el flujo de bits generado. Aquí el usuario puede inspeccionar
+    códigos por símbolo y verificar desigualdades teóricas (por ejemplo, la desigualdad de Shannon).
+\end{itemize}
+
+\subsection{Manejo de archivos}
+La aplicación maneja la carga, almacenamiento temporal y descarga de archivos con las siguientes capacidades:
+\begin{itemize}
+  \item Subida de archivos mediante formularios o arrastrar y soltar, con validación de tipos y tamaños.
+  \item Procesamiento en servidor (endpoints \texttt{/api/encode}, \texttt{/api/decode}) y streaming de resultados.
+  \item Posibilidad de descargar el archivo comprimido o el resultado de la decodificación.
+  \item Gestión de errores y notificaciones para operaciones sobre archivos (pérdida de conexión, límites de tamaño, formatos no soportados).
+\end{itemize}
+
+Esta sección debe insertarse en `implementacion.tex` donde se describen las características de la interfaz y la interacción con el backend.

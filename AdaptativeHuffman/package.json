@@ -1,0 +1,23 @@
+{
+  "name": "adaptative-huffman",
+  "version": "1.0.0",
+  "description": "Proyecto de Huffman adaptativo - paquete mínimo para pruebas",
+  "main": "app.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "mocha \"tests/**/*.test.js\" --exit"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "supertest": "^6.3.3"
+  }
+}

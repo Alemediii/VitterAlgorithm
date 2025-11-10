@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Adaptive Huffman — Home</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --card: #fff;
+      --accent: #007bff;
+      --accent-hover: #0056b3;
+      --muted: #6c757d;
+      --border: #e6e9ee;
+      --text: #222;
+      --code-bg: #f7fafc;
+      --terminal-bg: #0f1724;
+      --terminal-text: #e6eef8;
+      --error: #dc3545;
+      --success: #28a745;
+      --gradient-start: #667eea;
+      --gradient-end: #764ba2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header.nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    nav a {
+      padding: 8px 12px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover {
+      background: var(--bg);
+      color: var(--accent);
+    }
+
+    nav a.small {
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 20px;
+    }
+
+    .hero-section {
+      margin-bottom: 32px;
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      border-radius: 12px;
+      padding: 32px 36px;
+      color: white;
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .hero-section h1 {
+      margin: 0 0 10px 0;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .hero-section p {
+      margin: 0 0 6px 0;
+      opacity: 0.95;
+      font-size: 1rem;
+    }
+
+    .hero-text {
+      flex: 1;
+    }
+
+    .hero-image {
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      min-width: 120px;
+    }
+
+    .hero-image img {
+      max-width: 160px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      border: 0;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(20, 30, 50, 0.08);
+      border: 1px solid var(--border);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(20, 30, 50, 0.12);
+    }
+
+    .card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.25rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card h3::before {
+      content: '●';
+      color: var(--accent);
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0 0 16px 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      flex-grow: 1;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn.ghost {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn.ghost:hover {
+      background: var(--card);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .small-info {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .endpoint {
+      font-family: 'Courier New', Consolas, monospace;
+      background: var(--code-bg);
+      padding: 4px 8px;
+      border-radius: 5px;
+      display: inline-block;
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+
+    /* Sección especial para comparativa con layout lado a lado */
+    .compare-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 32px;
+      align-items: start;
+    }
+
+    .comparison-chart {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(20, 30, 50, 0.08);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .comparison-chart h3 {
+      margin: 0 0 16px 0;
+      font-size: 1.25rem;
+      color: var(--text);
+      text-align: center;
+      width: 100%;
+    }
+
+    .comparison-chart img {
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 40px auto 24px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 968px) {
+      .compare-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-section {
+        padding: 20px;
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+      }
+
+      .hero-section h1 {
+        font-size: 1.5rem;
+      }
+
+      .hero-text {
+        text-align: center;
+      }
+
+      .hero-image img {
+        max-width: 110px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="brand">🌳 Adaptive Huffman</div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/api/visualization/">Visualización</a>
+      <a href="/decoout">DE/CO/OUT</a>
+      <a href="#entropy">Entropy</a>
+      <a href="#compare">Comparar</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero-section">
+      <div class="hero-text">
+        <h1>Algoritmo de Vitter</h1>
+        <p>Compresión adaptativa en tiempo real con visualización interactiva del árbol de codificación</p>
+        <p><strong>Alejandro Medina Díaz</strong></p>
+      </div>
+      <div class="hero-image">
+        <img id="uma-img" src="/uma.png" alt="Universidad de Málaga" />
+      </div>
+    </section>
+
+    <!-- Sección especial: Comparativa lado a lado -->
+    <section class="compare-section">
+      <!-- Card Comparar Huffman vs Vitter -->
+      <div id="compare" class="card">
+        <h3>Compara Huffman y Vitter</h3>
+        <p>Comparar ambos algoritmos con la misma entrada: sube un archivo o pega texto y genera árboles y métricas de compresión lado a lado.</p>
+        <div class="actions">
+          <a class="btn primary" href="/compare">🔁 Abrir Comparador</a>
+        </div>
+        <div class="small-info">Página: <span class="endpoint">GET /compare</span> — compara métricas y árboles</div>
+      </div>
+
+      <!-- Gráfica comparativa -->
+      <div class="comparison-chart">
+        <h3>Comparativa de Tiempos</h3>
+        <img src="/comparison.png" alt="Comparativa Vitter vs Huffman" />
+      </div>
+    </section>
+
+    <!-- Resto de funcionalidades -->
+    <div class="grid">
+      <!-- Visualización Card -->
+      <div class="card">
+        <h3>Visualización Interactiva</h3>
+        <p>Explora el árbol de Huffman adaptativo en tiempo real. Observa cómo evoluciona la estructura durante la compresión y prueba el decoding, coding y output.</p>
+        <div class="actions">
+          <a class="btn primary" href="/api/visualization/">🔍 Abrir Visualización</a>
+        </div>
+        <div class="small-info">Endpoint: <span class="endpoint">GET /api/visualization/</span></div>
+      </div>
+
+      <!-- DE/CO/OUT Card -->
+      <div id="decoout" class="card">
+        <h3>DE/CO/OUT Panel</h3>
+        <p>Panel unificado para comprimir datos, descomprimirlos y visualizar la salida generada. Operaciones completas en un solo lugar.</p>
+        <div class="actions">
+          <a class="btn primary" href="/decoout">⚙️ Abrir Panel</a>
+        </div>
+        <div class="small-info">Subsección: <span class="endpoint">/decoout</span> — Compress / Decompress / Output</div>
+      </div>
+
+      <!-- Entropy Analysis Card -->
+      <div id="entropy" class="card">
+        <h3>Análisis de Entropía</h3>
+        <p>Calcula frecuencias y entropía. Dispones de una página dedicada que explica el proceso paso a paso con ejemplos interactivos.</p>
+        <div class="actions">
+          <a class="btn primary" href="/entropy/guide">📘 Abrir Guía</a>
+        </div>
+        <div class="small-info">Página dedicada: <span class="endpoint">GET /entropy/guide</span> — explicación y cálculo paso a paso</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <strong>Adaptive Huffman</strong> — Sistema de compresión adaptativa con UI centralizada<br>
+    Utiliza los enlaces de navegación para acceder a las interfaces específicas o interactúa directamente con la API
+  </footer>
+
+  <script type="module" src="/js/index-init.js"></script>
+  <script src="/js/treeRenderer.js"></script>
+</body>
+</html>

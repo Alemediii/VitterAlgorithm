@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Comparar Huffman y Vitter</title>
+  <style>
+    body{ font-family: Inter, system-ui, Arial; margin:0; background:#f6f8fa; color:#222 }
+    header{ background:#fff; border-bottom:1px solid #e6e9ee; padding:12px 20px }
+    .container{ max-width:1200px; margin:20px auto; padding:0 20px }
+    .split{ display:flex; gap:16px }
+    .panel{ background:#fff; border:1px solid #e6e9ee; border-radius:10px; padding:16px; flex:1 }
+    .panel h2{ margin:0 0 8px 0 }
+    .controls{ display:flex; gap:8px; margin-bottom:12px; align-items:center }
+    textarea{ width:100%; min-height:120px; padding:8px; border-radius:6px; border:1px solid #e6e9ee; font-family: monospace }
+    .metrics{ margin-top:12px; background:#f7fafc; padding:8px; border-radius:6px }
+    /* tree-area: scrollable frame; the actual tree is rendered inside .tree-root which will be scaled */
+    .tree-area{ margin-top:12px; min-height:220px; border:1px dashed #e6e9ee; border-radius:6px; padding:8px; overflow:auto; position:relative }
+    .tree-root{ display:block; transform-origin: top left; transition: transform 120ms ease; width:auto; }
+    .zoom-controls{ display:flex; gap:6px; align-items:center; margin-left:auto }
+    .actions{ display:flex; gap:8px }
+    .btn{ padding:8px 12px; border-radius:8px; background:#007bff; color:white; border:0; cursor:pointer }
+    .btn.ghost{ background:#fff; color:#007bff; border:1px solid #e6e9ee }
+    .note{ font-size:0.85rem; color:#6c757d }
+    @media (max-width:900px){ .split{ flex-direction:column } }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="max-width:1200px;margin:0 auto;padding:0 20px"> <a href="/">← Volver</a> <strong style="margin-left:12px">COMPARA HUFFMAN Y VITTER</strong></div>
+  </header>
+  <main class="container">
+    <div class="note">Sube un archivo o pega texto; la misma entrada se enviará a ambos algoritmos y se mostrarán árboles y métricas.</div>
+    <div style="margin-top:12px; display:flex; gap:10px; align-items:flex-start">
+      <input id="fileInput" type="file" accept=".txt" />
+      <div class="actions">
+        <button id="btnRun" class="btn">Comparar</button>
+        <button id="btnClear" class="btn ghost">Limpiar</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <textarea id="textInput" placeholder="Pega texto aquí o sube un archivo...">ABRACADABRA</textarea>
+    </div>
+
+    <div class="split" style="margin-top:16px">
+      <section class="panel">
+        <h2>Huffman (estático)
+          <span class="zoom-controls" style="float:right">
+            <button id="hufZoomOut" class="btn ghost">−</button>
+            <button id="hufZoomReset" class="btn ghost">100%</button>
+            <button id="hufZoomIn" class="btn ghost">+</button>
+            <span id="hufScale" style="margin-left:8px;color:#555;">100%</span>
+          </span>
+        </h2>
+        <div class="controls">
+          <div class="note">Algoritmo Huffman clásico (estático) aplicado a la entrada.</div>
+        </div>
+        <div class="metrics" id="huffmanMetrics">(sin datos)</div>
+        <div class="tree-area" id="huffmanTree">
+          <div class="tree-root" id="huffmanRoot">(árbol Huffman aquí)</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Vitter (adaptativo)
+          <span class="zoom-controls" style="float:right">
+            <button id="vitZoomOut" class="btn ghost">−</button>
+            <button id="vitZoomReset" class="btn ghost">100%</button>
+            <button id="vitZoomIn" class="btn ghost">+</button>
+            <span id="vitScale" style="margin-left:8px;color:#555;">100%</span>
+          </span>
+        </h2>
+        <div class="controls">
+          <div class="note">Árbol adaptativo (Vitter) generado alimentando la secuencia de bytes UTF-8.</div>
+        </div>
+        <div class="metrics" id="vitterMetrics">(sin datos)</div>
+        <div class="tree-area" id="vitterTree">
+          <div class="tree-root" id="vitterRoot">(árbol Vitter aquí)</div>
+        </div>
+      </section>
+    </div>
+
+    <div style="margin-top:12px" class="note">Nota: por ahora se muestran métricas y árboles; más adelante añadiremos gráficas comparativas.</div>
+  </main>
+
+  <script src="/js/treeRenderer.js"></script>
+  <script src="/js/compare.js"></script>
+</body>
+</html>
